@@ -23,20 +23,29 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Install Dependencies
-        run: npm install
-
-      - name: Build Web App
+      - name: Prepare Web Files
         run: |
           mkdir -p www
           cp index.html www/
 
-      - name: Prepare Android
+      - name: Install Capacitor
         run: |
-          npx cap add android || true
+          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 --no-audit --no-fund
 
-      - name: Sync Android
-        run: npx cap sync android
+      - name: Capacitor Config
+        run: |
+          cat > capacitor.config.json <<'EOF'
+          {
+            "appId": "com.dulo.hse",
+            "appName": "HSE",
+            "webDir": "www"
+          }
+          EOF
+
+      - name: Add and Sync Android
+        run: |
+          [ -d android ] || npx cap add android
+          npx cap sync android
 
       - name: Build APK
         run: |
@@ -49,3 +58,4 @@ jobs:
         with:
           name: app-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
